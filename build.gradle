@@ -1,0 +1,31 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.11.1'
+    }
+}
+apply plugin: 'android'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.android.support:appcompat-v7:21.0.+'
+    compile group: 'org.apache.httpcomponents' , name: 'httpclient-android' , version: '4.3.5'
+    compile 'com.melnykov:floatingactionbutton:1.0.7'
+}
+
+android {
+    compileSdkVersion 'Google Inc.:Google APIs:21'
+    buildToolsVersion '20.0.0'
+
+    buildTypes {
+        release {
+            runProguard false
+            proguardFile getDefaultProguardFile('proguard-android.txt')
+        }
+    }
+}
