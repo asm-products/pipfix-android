@@ -29,7 +29,7 @@ public class FixPipsTask extends AsyncTask<String, Void, String> {
 
     private HttpPatch getHttpatch(String... params) throws JSONException, IOException{
         Uri.Builder builder = new Uri.Builder();
-        builder.scheme("http").authority("www.pipfix.com")
+        builder.scheme("http").authority("pipfix.herokuapp.com")
                 .appendPath("api")
                 .appendPath("votes")
                 .appendPath(stuff.getStuffId());
@@ -39,7 +39,7 @@ public class FixPipsTask extends AsyncTask<String, Void, String> {
         json.put("pips", (int)Math.round(Float.valueOf(params[0])));
         StringEntity se = new StringEntity( json.toString());
         httppatch.setEntity(se);
-        httppatch.addHeader("Authorization" , "Token f48cca5812c4fb1c154c96a872ec539aa5154c6f");
+        //httppatch.addHeader("Authorization" , "Token f48cca5812c4fb1c154c96a872ec539aa5154c6f");
         httppatch.addHeader("Content-Type" , "application/json");
         Log.v(LOG_TAG, "Responseeeee " + httppatch.toString());
         return httppatch;
@@ -50,9 +50,9 @@ public class FixPipsTask extends AsyncTask<String, Void, String> {
         json.put("stuff_id", stuff.getStuffId());
         json.put("pips", (int)Math.round(Float.valueOf(params[0])));
         StringEntity se = new StringEntity( json.toString());
-        HttpPost httppost = new HttpPost("http://www.pipfix.com/api/votes/");
+        HttpPost httppost = new HttpPost("http://pipfix.herokuapp.com/api/votes/");
         httppost.setEntity(se);
-        httppost.addHeader("Authorization" , "Token f48cca5812c4fb1c154c96a872ec539aa5154c6f");
+        //httppost.addHeader("Authorization" , "Token f48cca5812c4fb1c154c96a872ec539aa5154c6f");
         httppost.addHeader("Content-Type" , "application/json");
         return httppost;
     }

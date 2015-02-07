@@ -42,7 +42,7 @@ public class GetVoteTask extends ListenableAsyncTask<Void, Void, JSONObject> {
         HttpClient httpclient = new DefaultHttpClient();
 
         Uri.Builder builder = new Uri.Builder();
-        builder.scheme("http").authority("www.pipfix.com")
+        builder.scheme("http").authority("pipfix.herokuapp.com")
                 .appendPath("api")
                 .appendPath("votes")
                 .appendPath(stuff.getStuffId());
@@ -51,7 +51,7 @@ public class GetVoteTask extends ListenableAsyncTask<Void, Void, JSONObject> {
         HttpGet httpget = new HttpGet(builder.build().toString());
         try {
             // Add your data
-            httpget.addHeader("Authorization" , "Token f48cca5812c4fb1c154c96a872ec539aa5154c6f");
+            //httpget.addHeader("Authorization" , "Token f48cca5812c4fb1c154c96a872ec539aa5154c6f");
             httpget.addHeader("Content-Type" , "application/json");
 
             HttpResponse response = httpclient.execute(httpget);
