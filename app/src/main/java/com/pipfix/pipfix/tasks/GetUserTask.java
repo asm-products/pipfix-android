@@ -5,6 +5,9 @@ package com.pipfix.pipfix.tasks;
  */
 import java.io.InputStreamReader;
 import java.io.IOException;
+
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
 import org.apache.http.client.methods.HttpPost;
@@ -89,7 +92,7 @@ public class GetUserTask extends AsyncTask<Void, Void, String> {
         builder.scheme("http").authority("pipfix.herokuapp.com")
                 .appendPath("api")
                 .appendPath("users")
-                .appendPath(String.valueOf(session.getUserId()));
+                .appendQueryParameter("twitter_id", String.valueOf(session.getUserId()));
         HttpGet httpget = new HttpGet(builder.build().toString());
         httpget.addHeader("Content-Type" , "application/json");
         return httpget;
@@ -97,7 +100,6 @@ public class GetUserTask extends AsyncTask<Void, Void, String> {
 
     private HttpPost getHttpPost(String... params) throws JSONException, IOException{
         TwitterSession session = Twitter.getSessionManager().getActiveSession();
-        Gson gson = new Gson();
         JSONObject json = new JSONObject();
         json.put("username", session.getUserName());
         json.put("twitter_id", String.valueOf(session.getUserId()));
@@ -110,7 +112,7 @@ public class GetUserTask extends AsyncTask<Void, Void, String> {
         return httppost;
     }
 
-    protected JSONObject getJSON(HttpResponse response) throws IOException, JSONException{
+    protected String getResponseString(HttpResponse response) throws IOException, JSONException {
         String searchResultStr = "";
         BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
         StringBuffer buffer = new StringBuffer();
@@ -123,9 +125,7 @@ public class GetUserTask extends AsyncTask<Void, Void, String> {
             Log.v(LOG_TAG, "Buffer empty");
             return null;
         }
-        searchResultStr = buffer.toString();
-
-        return new JSONObject(searchResultStr);
+        return buffer.toString();
     }
 
     @Override
@@ -136,12 +136,18 @@ public class GetUserTask extends AsyncTask<Void, Void, String> {
         try {
             HttpResponse response = httpclient.execute(getHttpGet());
             Log.v(LOG_TAG, "Status Code: " + String.valueOf(response.getStatusLine().getStatusCode()));
-            if (response.getStatusLine().getStatusCode() == 404) {
-                EntityUtils.toString(response.getEntity());
+            JSONArray jarray = new JSONArray(getResponseString(response));
+            if (jarray.length() == 0) {
                 HttpResponse response_post = httpclient.execute(getHttpPost());
-                return getJSON(response_post).toString();
+                return getResponseString(response_post);
             } else {
-                return getJSON(response).toString();
+                JSONObject json = jarray.getJSONObject(0);
+                SharedPreferences sharedPref = loginActivity.getPreferences(Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                Log.v(LOG_TAG, "User Id: " + json.get("id").toString());
+                editor.putString(loginActivity.getString(R.string.user_id), json.get("id").toString());
+                editor.commit();
+                return json.toString();
             }
 
         } catch (JSONException e) {
