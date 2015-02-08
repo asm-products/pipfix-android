@@ -10,6 +10,7 @@
         android:layout_gravity="bottom|right"
         android:layout_margin="16dp"
         android:src="@drawable/ic_action_search"
+        android:onClick="openPipFix"
         />
 
- </FrameLayout>
+</FrameLayout>

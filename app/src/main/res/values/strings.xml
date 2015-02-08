@@ -7,7 +7,9 @@
     <string name="action_search">Buscar</string>
     <string name="search_hint">Buscar</string>
     <string name="user_id">user_id</string>
+    <string name="votar">votar</string>
     <string name="title_activity_search">SearchActivity</string>
     <string name="title_activity_stuff_details">StuffDetailsActivity</string>
+    <string name="title_activity_pip_fix">PipFixActivity</string>
 
 </resources>
