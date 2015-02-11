@@ -8,6 +8,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -56,6 +57,9 @@ public class StuffDetailsActivity extends ActionBarActivity {
         // Toast.makeText(getActivity(), forecast, Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(this, PipFixActivity.class)
                 .putExtra(Intent.EXTRA_TEXT, stuff.getStuffId());
+        if (stuff.getPips() != null) {
+            intent.putExtra("pips", stuff.getPips().toString());
+        }
         startActivity(intent);
     }
 
@@ -86,14 +90,14 @@ public class StuffDetailsActivity extends ActionBarActivity {
      */
     public static class PlaceholderFragment extends Fragment {
 
+        private final String LOG_TAG = PlaceholderFragment.class.getSimpleName();
+
         private Stuff stuff;
         private View rootView;
 
         public PlaceholderFragment() {
             stuff = new Stuff();
         }
-
-
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -126,22 +130,6 @@ public class StuffDetailsActivity extends ActionBarActivity {
             return rootView;
         }
 
-        public void initializeRatingBar(Integer pips) {
-            RatingBar ratingBar = (RatingBar) rootView.findViewById(R.id.rating_bar);
-            if (pips != null) {
-
-                ratingBar.setRating((float)pips/2);
-            }
-            //display the current rating value in the result (textview) automatically
-            ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
-                public void onRatingChanged(RatingBar ratingBar, float rating,
-                                            boolean fromUser) {
-                    FixPipsTask fixpips = new FixPipsTask(stuff);
-                    fixpips.execute(String.valueOf(rating*2));
-
-                }
-            });
-        }
 
         public void handleIntent(Intent intent) {
             if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
@@ -155,10 +143,13 @@ public class StuffDetailsActivity extends ActionBarActivity {
                     public void onPostExecute(JSONObject result) {
                         try {
                             if (result!=null) {
+                                Log.v(LOG_TAG, "pips: " + result.get("pips"));
                                 stuff.setPips((Integer)result.get("pips"));
+                                StuffDetailsActivity act = (StuffDetailsActivity) getActivity();
+                                act.setStuff(stuff);
                             }
                         } catch (JSONException e) {}
-                        initializeRatingBar(stuff.getPips());
+
                     }
                 });
                 getVoteTask.execute();

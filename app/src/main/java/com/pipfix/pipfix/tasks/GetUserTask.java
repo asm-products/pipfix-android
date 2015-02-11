@@ -15,6 +15,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
+
+import android.preference.PreferenceManager;
 import android.widget.TextView;
 import java.io.BufferedReader;
 import android.net.Uri;
@@ -36,6 +38,7 @@ import org.apache.http.client.HttpClient;
 import com.google.gson.Gson;
 import com.pipfix.pipfix.LoginActivity;
 import com.pipfix.pipfix.R;
+import com.pipfix.pipfix.utils.ListenableAsyncTask;
 import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.TwitterAuthToken;
 import com.twitter.sdk.android.core.TwitterException;
@@ -45,7 +48,7 @@ import twitter4j.IDs;
 import twitter4j.TwitterFactory;
 import twitter4j.conf.ConfigurationBuilder;
 
-public class GetUserTask extends AsyncTask<Void, Void, String> {
+public class GetUserTask extends ListenableAsyncTask<Void, Void, String> {
 
     private LoginActivity loginActivity;
     private static final String TWITTER_KEY = "vLerXCrMiAxzRbJd6l45SIEmm";
@@ -142,7 +145,7 @@ public class GetUserTask extends AsyncTask<Void, Void, String> {
                 return getResponseString(response_post);
             } else {
                 JSONObject json = jarray.getJSONObject(0);
-                SharedPreferences sharedPref = loginActivity.getPreferences(Context.MODE_PRIVATE);
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(loginActivity);
                 SharedPreferences.Editor editor = sharedPref.edit();
                 Log.v(LOG_TAG, "User Id: " + json.get("id").toString());
                 editor.putString(loginActivity.getString(R.string.user_id), json.get("id").toString());
@@ -161,12 +164,5 @@ public class GetUserTask extends AsyncTask<Void, Void, String> {
         }
 
         return null;
-    }
-
-    @Override
-    protected void onPostExecute(String result) {
-        if (result != null) {
-            loginActivity.openMain();
-        }
     }
 }

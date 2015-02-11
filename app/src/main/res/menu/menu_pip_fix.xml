@@ -6,6 +6,7 @@
             android:icon="@drawable/ic_action_accept"
             app:showAsAction="always"
             android:orderInCategory="1"
+            android:onClick="onSubmit"
             android:title="@string/votar">
         </item>
 </menu>

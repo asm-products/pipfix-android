@@ -9,6 +9,7 @@ import android.view.MenuItem;
 
 import com.pipfix.pipfix.tasks.GetUserTask;
 import com.pipfix.pipfix.tasks.SearchStuffTask;
+import com.pipfix.pipfix.utils.AsyncTaskListener;
 import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.Callback;
 import com.twitter.sdk.android.core.Result;
@@ -16,6 +17,10 @@ import com.twitter.sdk.android.core.TwitterAuthConfig;
 import com.twitter.sdk.android.core.TwitterException;
 import com.twitter.sdk.android.core.TwitterSession;
 import com.twitter.sdk.android.core.identity.TwitterLoginButton;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import io.fabric.sdk.android.Fabric;
 
 
@@ -37,9 +42,8 @@ public class LoginActivity extends Activity {
         //Twitter.getSessionManager().clearActiveSession();
         TwitterSession session = Twitter.getSessionManager().getActiveSession();
 
-
         if (session != null) {
-            updateUser();
+            openMain();
         } else {
             setContentView(R.layout.activity_login);
             loginButton = (TwitterLoginButton) findViewById(R.id.twitter_login_button);
@@ -59,30 +63,15 @@ public class LoginActivity extends Activity {
 
     protected void updateUser() {
         GetUserTask getUserTask = new GetUserTask(this);
-        getUserTask.execute();
-    }
-
-    /*
-    protected void updateFollowers() {
-        TwitterListener listener = new TwitterAdapter() {
-            @Override public void gotFollowersIDs(IDs ids) {
-                System.out.println("Successfully updated the status to");
-            }
-
-            @Override public void onException(twitter4j.TwitterException te, TwitterMethod method) {
-                if (method == TwitterMethod.FOLLOWERS_IDS) {
-                    te.printStackTrace();
-                } else {
-                    throw new AssertionError("Should not happen");
+        getUserTask.listenWith(new AsyncTaskListener<String>() {
+            public void onPostExecute(String result) {
+                if (result!=null) {
+                    openMain();
                 }
             }
-        };
-        // The factory instance is re-useable and thread safe.
-        AsyncTwitterFactory factory = new AsyncTwitterFactory();
-        AsyncTwitter asyncTwitter = factory.getInstance();
-        asyncTwitter.addListener(listener);
-        asyncTwitter.getFollowersIDs();
-    }*/
+        });
+        getUserTask.execute();
+    }
 
     public void openMain() {
         Intent intent = new Intent(this, MainActivity.class);

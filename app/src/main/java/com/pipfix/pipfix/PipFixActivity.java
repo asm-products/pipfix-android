@@ -3,16 +3,20 @@ package com.pipfix.pipfix;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.RatingBar;
 
 import com.pipfix.pipfix.models.Stuff;
@@ -26,6 +30,8 @@ import org.json.JSONObject;
 
 
 public class PipFixActivity extends ActionBarActivity {
+
+    private final String LOG_TAG = PipFixActivity.class.getSimpleName();
 
     public Stuff getStuff() {
         return stuff;
@@ -72,6 +78,24 @@ public class PipFixActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    public void onSubmit(MenuItem item){
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        RatingBar ratingBar = (RatingBar) findViewById(R.id.ratingBar);
+        EditText editText = (EditText) findViewById(R.id.editText);
+        String user = sharedPref.getString("user_id", "");
+
+        FixPipsTask task = new FixPipsTask(stuff,
+                user,
+                (int)Math.round(Float.valueOf(ratingBar.getRating())),
+                editText.getText().toString());
+        task.listenWith(new AsyncTaskListener<String>() {
+            public void onPostExecute(String result) {
+                finish();
+            }
+        });
+        task.execute();
+    }
+
     /**
      * A placeholder fragment containing a simple view.
      */
@@ -99,26 +123,16 @@ public class PipFixActivity extends ActionBarActivity {
             return rootView;
         }
 
-        public void initializeRatingBar(Integer pips) {
-            RatingBar ratingBar = (RatingBar) rootView.findViewById(R.id.rating_bar);
-            if (pips != null) {
 
-                ratingBar.setRating((float)pips/2);
-            }
-            //display the current rating value in the result (textview) automatically
-            ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
-                public void onRatingChanged(RatingBar ratingBar, float rating,
-                                            boolean fromUser) {
-                    FixPipsTask fixpips = new FixPipsTask(stuff);
-                    fixpips.execute(String.valueOf(rating*2));
 
-                }
-            });
-        }
 
         public void handleIntent(Intent intent) {
             if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
                 stuff.setStuffId(intent.getStringExtra(Intent.EXTRA_TEXT));
+                String pips = intent.getStringExtra("pips");
+                if (pips != null) {
+                    stuff.setPips(Integer.valueOf(pips));
+                }
                 PipFixActivity act = (PipFixActivity) getActivity();
                 act.setStuff(stuff);
             }
