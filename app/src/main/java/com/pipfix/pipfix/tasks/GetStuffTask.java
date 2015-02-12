@@ -24,8 +24,10 @@ import java.net.URI;
 import org.apache.http.client.HttpClient;
 
 import com.pipfix.pipfix.R;
+import com.pipfix.pipfix.models.Stuff;
+import com.pipfix.pipfix.utils.ListenableAsyncTask;
 
-public class GetStuffTask extends AsyncTask<String, Void, String> {
+public class GetStuffTask extends ListenableAsyncTask<String, Void, JSONObject> {
 
     private View rootView;
 
@@ -36,7 +38,7 @@ public class GetStuffTask extends AsyncTask<String, Void, String> {
     private final String LOG_TAG = GetStuffTask.class.getSimpleName();
 
     @Override
-    protected String doInBackground(String... params) {
+    protected JSONObject doInBackground(String... params) {
 
         if (params.length == 0) {
             return null;
@@ -71,7 +73,14 @@ public class GetStuffTask extends AsyncTask<String, Void, String> {
 
             JSONObject searchResultJson = new JSONObject(searchResultStr);
             Log.v(LOG_TAG, "Stuff search string: " + searchResultStr);
-            return searchResultJson.toString();
+            Stuff stuff = new Stuff();
+            stuff.setStuffId(params[0]);
+            stuff.setTitle(searchResultJson.getString("Title"));
+            stuff.setDescription(searchResultJson.getString("Plot"));
+            stuff.setImage(searchResultJson.getString("Poster"));
+            stuff.setYear(searchResultJson.getInt("Year"));
+            stuff.update();
+            return searchResultJson;
 
         } catch (JSONException e) {
             Log.v(LOG_TAG, "JSON " + e.toString());
@@ -84,13 +93,5 @@ public class GetStuffTask extends AsyncTask<String, Void, String> {
         }
 
         return null;
-    }
-
-    @Override
-    protected void onPostExecute(String result) {
-        if (result != null) {
-            ((TextView) rootView.findViewById(R.id.stuff_details_text))
-                    .setText(result);
-        }
     }
 }

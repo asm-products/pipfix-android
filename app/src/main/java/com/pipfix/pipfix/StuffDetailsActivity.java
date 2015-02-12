@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.os.Build;
 import android.widget.RatingBar;
+import android.widget.TextView;
 
 import com.melnykov.fab.FloatingActionButton;
 import com.pipfix.pipfix.models.Stuff;
@@ -135,24 +136,35 @@ public class StuffDetailsActivity extends ActionBarActivity {
             if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
                 stuff.setStuffId(intent.getStringExtra(Intent.EXTRA_TEXT));
                 StuffDetailsActivity act = (StuffDetailsActivity) getActivity();
-                act.setStuff(stuff);
                 GetStuffTask getStuffTask = new GetStuffTask(rootView);
-                getStuffTask.execute(stuff.getStuffId());
-                GetVoteTask getVoteTask = new GetVoteTask(stuff);
-                getVoteTask.listenWith(new AsyncTaskListener<JSONObject>() {
-                    public void onPostExecute(JSONObject result) {
+                getStuffTask.listenWith(new AsyncTaskListener<JSONObject>() {
+                    public void onPostExecute(JSONObject result){
                         try {
-                            if (result!=null) {
-                                Log.v(LOG_TAG, "pips: " + result.get("pips"));
-                                stuff.setPips((Integer)result.get("pips"));
-                                StuffDetailsActivity act = (StuffDetailsActivity) getActivity();
-                                act.setStuff(stuff);
+                            if (result != null) {
+                                ((TextView) getActivity().findViewById(R.id.stuff_details_text))
+                                        .setText(result.getString("Title"));
+
                             }
                         } catch (JSONException e) {}
+                        GetVoteTask getVoteTask = new GetVoteTask(stuff);
+                        getVoteTask.listenWith(new AsyncTaskListener<JSONObject>() {
+                            public void onPostExecute(JSONObject result) {
+                                try {
+                                    if (result!=null) {
+                                        Log.v(LOG_TAG, "pips: " + result.get("pips"));
+                                        stuff.setPips((Integer)result.get("pips"));
+                                        StuffDetailsActivity act = (StuffDetailsActivity) getActivity();
+                                        act.setStuff(stuff);
+                                    }
+                                } catch (JSONException e) {}
 
+                            }
+                        });
+                        getVoteTask.execute();
                     }
                 });
-                getVoteTask.execute();
+                getStuffTask.execute(stuff.getStuffId());
+
 
             }
         }
