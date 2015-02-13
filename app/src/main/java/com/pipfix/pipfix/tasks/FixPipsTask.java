@@ -64,7 +64,7 @@ public class FixPipsTask extends ListenableAsyncTask<String, Void, String> {
 
     private HttpPost getHttpPost() throws JSONException, IOException{
         JSONObject json = new JSONObject();
-        json.put("stuff_id", stuff.getStuffId());
+        json.put("stuff", stuff.getStuffId());
         json.put("pips", pips);
         json.put("user", user);
         json.put("comment", comment);

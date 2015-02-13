@@ -135,15 +135,13 @@ public class StuffDetailsActivity extends ActionBarActivity {
         public void handleIntent(Intent intent) {
             if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
                 stuff.setStuffId(intent.getStringExtra(Intent.EXTRA_TEXT));
-                StuffDetailsActivity act = (StuffDetailsActivity) getActivity();
+
                 GetStuffTask getStuffTask = new GetStuffTask(rootView);
                 getStuffTask.listenWith(new AsyncTaskListener<JSONObject>() {
                     public void onPostExecute(JSONObject result){
                         try {
                             if (result != null) {
-                                ((TextView) getActivity().findViewById(R.id.stuff_details_text))
-                                        .setText(result.getString("Title"));
-
+                                stuff.setTitle(result.getString("Title"));
                             }
                         } catch (JSONException e) {}
                         GetVoteTask getVoteTask = new GetVoteTask(stuff);
@@ -154,9 +152,13 @@ public class StuffDetailsActivity extends ActionBarActivity {
                                         Log.v(LOG_TAG, "pips: " + result.get("pips"));
                                         stuff.setPips((Integer)result.get("pips"));
                                         StuffDetailsActivity act = (StuffDetailsActivity) getActivity();
-                                        act.setStuff(stuff);
+
                                     }
                                 } catch (JSONException e) {}
+                                StuffDetailsActivity act = (StuffDetailsActivity) getActivity();
+                                act.setStuff(stuff);
+                                ((TextView) getActivity().findViewById(R.id.stuff_details_text))
+                                        .setText(stuff.getTitle());
 
                             }
                         });
