@@ -24,74 +24,36 @@ import java.net.URI;
 import org.apache.http.client.HttpClient;
 
 import com.pipfix.pipfix.R;
+import com.pipfix.pipfix.apis.OmdbAPI;
 import com.pipfix.pipfix.models.Stuff;
 import com.pipfix.pipfix.utils.ListenableAsyncTask;
 
-public class GetStuffTask extends ListenableAsyncTask<String, Void, JSONObject> {
+public class GetStuffTask extends ListenableAsyncTask<String, Void, Stuff> {
 
-    private View rootView;
+    private String user;
 
-    public GetStuffTask(View view) {
-        this.rootView = view;
+    public GetStuffTask(String user) {
+        this.user = user;
     }
 
     private final String LOG_TAG = GetStuffTask.class.getSimpleName();
 
     @Override
-    protected JSONObject doInBackground(String... params) {
+    protected Stuff doInBackground(String... params) {
 
         if (params.length == 0) {
             return null;
         }
 
-        HttpClient httpclient = new DefaultHttpClient();
+        OmdbAPI omdb_api = new OmdbAPI();
+        Stuff stuff = omdb_api.getStuffDetails(params[0]);
+        if (stuff != null) {
+            stuff.setUser(user);
+            stuff.save();
+            stuff.findUserVote();
+            stuff.findUserAverage();
 
-        Uri.Builder builder = new Uri.Builder();
-        builder.scheme("http").authority("www.omdbapi.com")
-                .appendQueryParameter("i", params[0]);
-
-        String searchResultStr = "";
-        HttpGet httpget = new HttpGet(builder.build().toString());
-        try {
-            // Add your data
-            httpget.addHeader("Authorization" , "Token f48cca5812c4fb1c154c96a872ec539aa5154c6f");
-            httpget.addHeader("Content-Type" , "application/json");
-
-            HttpResponse response = httpclient.execute(httpget);
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-            StringBuffer buffer = new StringBuffer();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                buffer.append(line + "\n");
-            }
-
-            if (buffer.length() == 0) {
-                return null;
-            }
-            searchResultStr = buffer.toString();
-
-            JSONObject searchResultJson = new JSONObject(searchResultStr);
-            Log.v(LOG_TAG, "Stuff search string: " + searchResultStr);
-            Stuff stuff = new Stuff();
-            stuff.setStuffId(params[0]);
-            stuff.setTitle(searchResultJson.getString("Title"));
-            stuff.setDescription(searchResultJson.getString("Plot"));
-            stuff.setImage(searchResultJson.getString("Poster"));
-            stuff.setYear(searchResultJson.getInt("Year"));
-            stuff.update();
-            return searchResultJson;
-
-        } catch (JSONException e) {
-            Log.v(LOG_TAG, "JSON " + e.toString());
-            // Log.e(LOG_TAG, e.getMessage(), e);
-            // e.printStackTrace();
-        } catch (ClientProtocolException e) {
-            Log.v(LOG_TAG, "POST ERROR " + e.toString());
-        } catch (IOException e) {
-            Log.v(LOG_TAG, "POST ERROR " + e.toString());
         }
-
-        return null;
+        return stuff;
     }
 }

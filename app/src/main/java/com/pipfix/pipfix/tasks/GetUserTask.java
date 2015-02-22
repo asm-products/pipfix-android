@@ -12,6 +12,7 @@ import android.os.AsyncTask;
 
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -108,7 +109,7 @@ public class GetUserTask extends ListenableAsyncTask<Void, Void, String> {
         json.put("twitter_id", String.valueOf(session.getUserId()));
         json.put("followed", new JSONArray(getFriends()));
         Log.v(LOG_TAG, "User " + json.toString());
-        StringEntity se = new StringEntity( json.toString());
+        StringEntity se = new StringEntity( json.toString(), HTTP.UTF_8);
         HttpPost httppost = new HttpPost("http://pipfix.herokuapp.com/api/users/");
         httppost.setEntity(se);
         httppost.addHeader("Content-Type" , "application/json");

@@ -3,11 +3,14 @@ package com.pipfix.pipfix;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v7.widget.SearchView;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -15,19 +18,18 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.os.Build;
-import android.widget.RatingBar;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.melnykov.fab.FloatingActionButton;
+import com.nostra13.universalimageloader.core.ImageLoader;
 import com.pipfix.pipfix.models.Stuff;
-import com.pipfix.pipfix.tasks.FixPipsTask;
+import com.pipfix.pipfix.models.Vote;
 import com.pipfix.pipfix.tasks.GetStuffTask;
-import com.pipfix.pipfix.tasks.GetVoteTask;
 import com.pipfix.pipfix.utils.AsyncTaskListener;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.List;
 
 
 public class StuffDetailsActivity extends ActionBarActivity {
@@ -131,38 +133,57 @@ public class StuffDetailsActivity extends ActionBarActivity {
             return rootView;
         }
 
+        private Drawable loadImageFromWeb(String url)
+        {
+            try
+            {
+                InputStream is = (InputStream) new URL(url).getContent();
+                Drawable d = Drawable.createFromStream(is, "src name");
+                return d;
+            }catch (Exception e) {
+                System.out.println("Exc="+e);
+                return null;
+            }
+        }
+
 
         public void handleIntent(Intent intent) {
             if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
                 stuff.setStuffId(intent.getStringExtra(Intent.EXTRA_TEXT));
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
-                GetStuffTask getStuffTask = new GetStuffTask(rootView);
-                getStuffTask.listenWith(new AsyncTaskListener<JSONObject>() {
-                    public void onPostExecute(JSONObject result){
-                        try {
-                            if (result != null) {
-                                stuff.setTitle(result.getString("Title"));
-                            }
-                        } catch (JSONException e) {}
-                        GetVoteTask getVoteTask = new GetVoteTask(stuff);
-                        getVoteTask.listenWith(new AsyncTaskListener<JSONObject>() {
-                            public void onPostExecute(JSONObject result) {
-                                try {
-                                    if (result!=null) {
-                                        Log.v(LOG_TAG, "pips: " + result.get("pips"));
-                                        stuff.setPips((Integer)result.get("pips"));
-                                        StuffDetailsActivity act = (StuffDetailsActivity) getActivity();
+                String user = sharedPref.getString("user_id", "");
+                Log.v(LOG_TAG, "El usuario es: " + user);
+                GetStuffTask getStuffTask = new GetStuffTask(user);
+                getStuffTask.listenWith(new AsyncTaskListener<Stuff>() {
+                    public void onPostExecute(Stuff result){
+                        StuffDetailsActivity act = (StuffDetailsActivity) getActivity();
+                        act.setStuff(result);
 
-                                    }
-                                } catch (JSONException e) {}
-                                StuffDetailsActivity act = (StuffDetailsActivity) getActivity();
-                                act.setStuff(stuff);
-                                ((TextView) getActivity().findViewById(R.id.stuff_details_text))
-                                        .setText(stuff.getTitle());
+                        ((TextView) getActivity().findViewById(R.id.stuff_details_text))
+                                .setText(result.getTitle());
+                        ((TextView) getActivity().findViewById(R.id.stuff_detail_description))
+                                .setText(result.getDescription());
+                        if (result.getUserAverage() !=  null){
+                            ((TextView) getActivity().findViewById(R.id.stuff_detail_user_average))
+                                    .setText(result.getUserAverage().toString());
+                        }
+                        if (result.getAverage() != null) {
+                            ((TextView) getActivity().findViewById(R.id.stuff_detail_average))
+                                    .setText(result.getAverage().toString());
+                        }
 
-                            }
-                        });
-                        getVoteTask.execute();
+                        ImageLoader.getInstance().displayImage(result.getImage(),
+                                (ImageView) getActivity().findViewById(R.id.stuff_details_image));
+
+                        StringBuilder builder = new StringBuilder();
+                        List<Vote> votes = result.getVotes();
+                        for (int i = 0; i < votes.size(); i++) {
+                            Vote vote = votes.get(i);
+                            builder.append("<b>" + vote.getUser() + "</b> " + vote.getComment() + " - " +  vote.getPips().toString() +"<br />");
+                        }
+                        ((TextView) getActivity().findViewById(R.id.stuff_detail_comments))
+                                .setText(Html.fromHtml(builder.toString()));
                     }
                 });
                 getStuffTask.execute(stuff.getStuffId());

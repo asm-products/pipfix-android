@@ -6,6 +6,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+
+import org.apache.http.protocol.HTTP;
 import org.json.JSONException;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPatch;
@@ -44,6 +46,8 @@ public class FixPipsTask extends ListenableAsyncTask<String, Void, String> {
         Uri.Builder builder = new Uri.Builder();
         builder.scheme("http").authority("pipfix.herokuapp.com")
                 .appendPath("api")
+                .appendPath("users")
+                .appendPath(user)
                 .appendPath("votes")
                 .appendPath(stuff.getStuffId());
 
@@ -54,7 +58,7 @@ public class FixPipsTask extends ListenableAsyncTask<String, Void, String> {
         json.put("user", user);
         json.put("comment", comment);
 
-        StringEntity se = new StringEntity( json.toString());
+        StringEntity se = new StringEntity( json.toString(), HTTP.UTF_8);
         httppatch.setEntity(se);
         //httppatch.addHeader("Authorization" , "Token f48cca5812c4fb1c154c96a872ec539aa5154c6f");
         httppatch.addHeader("Content-Type" , "application/json");
@@ -63,14 +67,21 @@ public class FixPipsTask extends ListenableAsyncTask<String, Void, String> {
     }
 
     private HttpPost getHttpPost() throws JSONException, IOException{
+        Uri.Builder builder = new Uri.Builder();
+        builder.scheme("http").authority("pipfix.herokuapp.com")
+                .appendPath("api")
+                .appendPath("users")
+                .appendPath(user)
+                .appendPath("votes");
+
         JSONObject json = new JSONObject();
         json.put("stuff", stuff.getStuffId());
         json.put("pips", pips);
         json.put("user", user);
         json.put("comment", comment);
 
-        StringEntity se = new StringEntity( json.toString());
-        HttpPost httppost = new HttpPost("http://pipfix.herokuapp.com/api/votes/");
+        StringEntity se = new StringEntity( json.toString(), HTTP.UTF_8);
+        HttpPost httppost = new HttpPost(builder.build().toString() + '/');
         httppost.setEntity(se);
 
         //httppost.addHeader("Authorization" , "Token f48cca5812c4fb1c154c96a872ec539aa5154c6f");

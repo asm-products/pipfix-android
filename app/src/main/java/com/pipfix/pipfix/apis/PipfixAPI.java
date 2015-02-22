@@ -1,51 +1,38 @@
-package com.pipfix.pipfix.tasks;
+package com.pipfix.pipfix.apis;
 
-/**
- * Created by mativs on 01/02/15.
- */
-import java.io.InputStreamReader;
-import java.io.IOException;
-import android.os.AsyncTask;
-import org.json.JSONException;
-import android.widget.TextView;
-import java.io.BufferedReader;
 import android.net.Uri;
 import android.util.Log;
-import java.net.URL;
-import org.json.JSONObject;
-import java.net.HttpURLConnection;
-import android.view.View;
-import java.io.InputStream;
-import org.apache.http.client.methods.HttpGet;
+
+import com.pipfix.pipfix.models.Stuff;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.impl.client.DefaultHttpClient;
-import java.net.URI;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-import com.pipfix.pipfix.R;
-import com.pipfix.pipfix.models.Stuff;
-import com.pipfix.pipfix.utils.ListenableAsyncTask;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
-public class GetVoteTask extends ListenableAsyncTask<Void, Void, JSONObject> {
+/**
+ * Created by mativs on 21/02/15.
+ */
+public class PipfixAPI {
+    private final String LOG_TAG = PipfixAPI.class.getSimpleName();
 
-    private Stuff stuff;
-
-    public GetVoteTask(Stuff newStuff) {
-        stuff = newStuff;
-    }
-
-    private final String LOG_TAG = GetVoteTask.class.getSimpleName();
-
-    @Override
-    protected JSONObject doInBackground(Void... params) {
+    public JSONObject getUserVotesForStuff(String user, String stuff_id) {
         HttpClient httpclient = new DefaultHttpClient();
 
         Uri.Builder builder = new Uri.Builder();
         builder.scheme("http").authority("pipfix.herokuapp.com")
                 .appendPath("api")
+                .appendPath("users")
+                .appendPath(user)
                 .appendPath("votes")
-                .appendPath(stuff.getStuffId());
+                .appendPath(stuff_id);
 
         String searchResultStr = "";
         HttpGet httpget = new HttpGet(builder.build().toString());
@@ -71,9 +58,7 @@ public class GetVoteTask extends ListenableAsyncTask<Void, Void, JSONObject> {
             }
             searchResultStr = buffer.toString();
 
-            JSONObject searchResultJson = new JSONObject(searchResultStr);
-            Log.v(LOG_TAG, "Stuff search string: " + searchResultStr);
-            return searchResultJson;
+            return new JSONObject(searchResultStr);
 
         } catch (JSONException e) {
             Log.v(LOG_TAG, "JSON " + e.toString());
@@ -87,5 +72,4 @@ public class GetVoteTask extends ListenableAsyncTask<Void, Void, JSONObject> {
 
         return null;
     }
-
 }
